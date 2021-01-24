@@ -9,9 +9,9 @@ import com.google.gson.JsonObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.constraints.NotNull;
 
 @Api(tags = "品牌接口")
 public interface BrandService {
@@ -26,4 +26,13 @@ public interface BrandService {
     @PostMapping(value = "brand/save")
     Result<JsonObject> saveBrand(@Validated({MingruiOperation.Add.class}) @RequestBody BrandDTO brandDTO);
 
+    //修改
+    @ApiOperation(value = "品牌修改")
+    @PutMapping(value = "brand/save")
+    Result<JsonObject> editBrand(@Validated({MingruiOperation.Update.class}) @RequestBody BrandDTO brandDTO);
+
+    //删除
+    @ApiOperation(value = "品牌删除")
+    @DeleteMapping(value = "brand/del")
+    Result<JsonObject> delBrand(@NotNull Integer id);
 }

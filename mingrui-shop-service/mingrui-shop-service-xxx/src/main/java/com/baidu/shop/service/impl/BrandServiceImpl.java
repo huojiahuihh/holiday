@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tk.mybatis.mapper.entity.Example;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -80,6 +81,30 @@ public class BrandServiceImpl extends BaseApiService implements BrandService {
         return this.setResultSuccess("新增成功");
     }
 
+    //修改
+    @Override
+    public Result<JsonObject> editBrand(BrandDTO brandDTO) {
+        BrandEntity brandEntity = BaiduBeanUtil.copyProperties(brandDTO, BrandEntity.class);
+
+        brandEntity.setLetter(PinyinUtil.getUpperCase(String.valueOf(brandEntity.getName().toCharArray()[0]),false).toCharArray()[0]);
+        brandMapper.updateByPrimaryKeySelective(brandEntity);
+
+        //通过BrandId删除中间表的数据\
+        this.deleteCreateBrandById(brandEntity.getId());
+        return this.setResultSuccess();
+    }
+
+    @Override
+    public Result<JsonObject> delBrand(@NotNull Integer id) {
+        //删除品牌
+        brandMapper.deleteByPrimaryKey(id);
+
+        //通过brandId删除中间表的数据
+        this.deleteCreateBrandById(id);
+        return this.setResultSuccess("");
+    }
+
+
     //提出来公共的部分 使代码更简洁
     private void insertCreateBrand(String categories,Integer brandId){
         //批量新增 \ 新增
@@ -97,5 +122,14 @@ public class BrandServiceImpl extends BaseApiService implements BrandService {
             CategoryBrandEntity entity = new CategoryBrandEntity(Integer.valueOf(categories),brandId);
             categoryBrandMapper.insertSelective(entity);
         }
+    }
+
+
+    //提出来的公共部分 删除中间表的数聚
+    private void deleteCreateBrandById(Integer brandId){
+        //通过BrandId删除中间表的数据
+        Example example = new Example(CategoryBrandEntity.class);
+        example.createCriteria().andEqualTo("brandId",brandId);
+        categoryBrandMapper.deleteByExample(example);
     }
 }
